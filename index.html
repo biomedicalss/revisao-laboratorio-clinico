@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Revisão interativa de Laboratório Clínico para Biomedicina" />
+  <title>Revisão Interativa — Laboratório Clínico</title>
+  <style>
+    :root {
+      --bg:#f4f7fb; --card:#ffffff; --text:#18212f; --muted:#667085;
+      --border:#d9e1ec; --accent:#2457c5; --accent-soft:#eef4ff;
+      --ok:#147a4b; --ok-soft:#ecf8f1; --bad:#b42318; --bad-soft:#fff0ee;
+      --warn:#8a5a00; --warn-soft:#fff7e6; --shadow:0 10px 28px rgba(24,33,47,.08);
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.55}
+    .wrap{width:min(980px,calc(100% - 28px));margin:0 auto}
+    header{background:linear-gradient(135deg,#173e91,#2f6edb);color:white;padding:34px 0 28px}
+    header h1{margin:0 0 8px;font-size:clamp(1.7rem,4vw,2.6rem);line-height:1.12}
+    header p{margin:0;max-width:760px;opacity:.93}
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}
+    button,.btn{border:0;border-radius:10px;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}
+    .primary{background:white;color:#173e91}
+    .secondary{background:#e8efff;color:#173e91}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,.55);color:white}
+    main{padding:24px 0 48px}
+    .status{position:sticky;top:0;z-index:5;background:rgba(244,247,251,.94);backdrop-filter:blur(8px);padding:10px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--border)}
+    .status-inner{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .progress-track{height:10px;background:#e5eaf2;border-radius:99px;overflow:hidden;flex:1;min-width:180px}
+    .progress-bar{height:100%;width:0;background:var(--accent);transition:width .2s ease}
+    .score{font-weight:800;white-space:nowrap}
+    .section-title{margin:30px 0 12px}
+    .section-title h2{margin:0 0 5px;font-size:1.5rem}
+    .section-title p{margin:0;color:var(--muted)}
+    .question{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin:14px 0;box-shadow:var(--shadow)}
+    .qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+    .qnum{font-weight:900;color:var(--accent);font-size:.95rem}
+    .topic{font-size:.82rem;color:#3d4b61;background:#eef2f7;border-radius:99px;padding:5px 9px;white-space:nowrap}
+    .qtext{font-size:1.05rem;font-weight:750;margin:10px 0 14px}
+    .option{display:block;border:1px solid var(--border);border-radius:12px;margin:9px 0;overflow:hidden;background:#fff;transition:.15s}
+    .option:hover{border-color:#aebad0}
+    .option label{display:flex;gap:10px;align-items:flex-start;padding:12px;cursor:pointer}
+    .option input{margin-top:4px;accent-color:var(--accent);transform:scale(1.1)}
+    .letter{font-weight:900;min-width:24px}
+    .option.correct{border-color:#7cc6a2;background:var(--ok-soft)}
+    .option.incorrect.selected{border-color:#e7a29d;background:var(--bad-soft)}
+    .explanation{display:none;padding:0 12px 12px 46px;color:#364152;font-size:.94rem}
+    .checked .explanation{display:block}
+    .explanation strong.ok{color:var(--ok)} .explanation strong.bad{color:var(--bad)}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:12px}
+    .check{background:var(--accent);color:#fff}
+    .check:disabled{opacity:.55;cursor:not-allowed}
+    .msg{font-size:.92rem;font-weight:700}
+    .msg.ok{color:var(--ok)} .msg.bad{color:var(--bad)} .msg.warn{color:var(--warn)}
+    .disc{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;margin:14px 0;box-shadow:var(--shadow)}
+    .disc h3{margin:0 0 8px}
+    .asks{padding-left:22px}
+    textarea{width:100%;min-height:150px;border:1px solid var(--border);border-radius:12px;padding:12px;font:inherit;resize:vertical;background:#fbfcfe}
+    details{margin-top:12px;border:1px solid var(--border);border-radius:12px;padding:10px 12px;background:#fbfcfe}
+    summary{cursor:pointer;font-weight:800;color:var(--accent)}
+    .answer-list{margin-bottom:0}
+    .note{background:var(--warn-soft);border:1px solid #f2d59b;border-radius:14px;padding:14px 16px;color:#5f4513;margin:18px 0}
+    footer{color:var(--muted);font-size:.9rem;padding:28px 0 46px}
+    .top-link{color:inherit}
+    @media(max-width:600px){
+      .question,.disc{padding:16px;border-radius:14px}
+      .qhead{display:block} .topic{display:inline-block;margin-top:7px}
+      .explanation{padding-left:12px}
+      .toolbar button{flex:1 1 140px}
+    }
+    @media print{
+      header .toolbar,.status,.check{display:none!important}
+      body{background:white} .question,.disc{box-shadow:none;break-inside:avoid}
+      .explanation{display:block!important}
+    }
+  </style>
+</head>
+<body>
+<header id="top">
+  <div class="wrap">
+    <h1>Revisão Interativa — Laboratório Clínico</h1>
+    <p>Biomedicina • questões objetivas com correção e explicação de todas as alternativas + questões discursivas com resposta esperada.</p>
+    <div class="toolbar">
+      <button class="primary" id="shuffleBtn">↻ Embaralhar questões</button>
+      <button class="secondary" id="checkAllBtn">✓ Conferir respondidas</button>
+      <button class="ghost" id="resetBtn">Limpar respostas</button>
+    </div>
+  </div>
+</header>
+
+<div class="status">
+  <div class="wrap status-inner">
+    <div class="progress-track" aria-label="Progresso"><div class="progress-bar" id="progressBar"></div></div>
+    <div class="score" id="scoreText">0/20 conferidas • 0 acertos</div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="note"><strong>Como usar:</strong> selecione uma alternativa e clique em <strong>Conferir</strong>. Em seguida, o site mostra a resposta correta e explica <strong>cada uma das cinco alternativas</strong>, inclusive as erradas. A ordem das questões e das alternativas é embaralhada para facilitar a revisão.</div>
+
+  <section>
+    <div class="section-title">
+      <h2>Questões objetivas</h2>
+      <p>20 questões. A pontuação considera apenas a alternativa atualmente marcada em cada questão conferida.</p>
+    </div>
+    <div id="questions"></div>
+  </section>
+
+  <section>
+    <div class="section-title">
+      <h2>Questões discursivas</h2>
+      <p>Escreva sua resposta antes de abrir “Ver resposta esperada”.</p>
+    </div>
+    <div id="discursive"></div>
+  </section>
+</main>
+
+<footer class="wrap">
+  Conteúdo de revisão organizado a partir dos materiais fornecidos para a disciplina. Não foram incluídas questões específicas de microscópio nem de identificação/função de vidrarias. • <a class="top-link" href="#top">Voltar ao topo</a>
+</footer>
+
+<script>
+const QUESTIONS = [{"id": 1, "topic": "Pipetagem", "text": "Após a manutenção de uma micropipeta e a substituição de uma de suas peças, qual conduta está de acordo com os cuidados apresentados no material?", "options": [{"text": "Voltar a utilizá-la imediatamente, desde que a ponteira encaixe corretamente.", "correct": false, "explanation": "Incorreta. O encaixe da ponteira, por si só, não confirma que o volume dispensado continua adequado após uma manutenção ou troca de peça."}, {"text": "Realizar ou verificar a calibração antes de retomar o uso rotineiro.", "correct": true, "explanation": "Correta. O material inclui a manutenção e a troca de peças entre as situações em que a calibração da pipeta deve ser verificada."}, {"text": "Aumentar a faixa de volume para compensar possíveis desvios.", "correct": false, "explanation": "Incorreta. A faixa de volume do instrumento deve ser respeitada; alterar o volume não corrige um possível desvio de calibração."}, {"text": "Manter a micropipeta deitada por 24 horas antes do uso.", "correct": false, "explanation": "Incorreta. Esse repouso não substitui a verificação da calibração e não é apresentado como procedimento corretivo no material."}, {"text": "Utilizar água quente para testar a estabilidade do volume.", "correct": false, "explanation": "Incorreta. O material não indica água quente como método de verificação da calibração ou da estabilidade da micropipeta."}]}, {"id": 2, "topic": "Biossegurança", "text": "Um profissional manipula um reagente inflamável próximo a uma chama aberta, mesmo sabendo do risco. Essa conduta exemplifica:", "options": [{"text": "Negligência.", "correct": false, "explanation": "Incorreta. Negligência é omissão, falta de atenção ou deixar de tomar uma precaução necessária."}, {"text": "Imperícia.", "correct": false, "explanation": "Incorreta. Imperícia é falta de habilidade ou de conhecimento técnico para executar uma tarefa."}, {"text": "Imprudência.", "correct": true, "explanation": "Correta. Imprudência é agir de modo perigoso ou sem cautela mesmo conhecendo o risco; o próprio material usa situação semelhante como exemplo."}, {"text": "Risco ergonômico.", "correct": false, "explanation": "Incorreta. Risco ergonômico envolve fatores como postura inadequada, repetitividade, transporte de peso e condições de trabalho que geram desconforto."}, {"text": "Desinfecção inadequada.", "correct": false, "explanation": "Incorreta. A situação descreve uma conduta perigosa diante de um risco de incêndio, e não um procedimento de desinfecção."}]}, {"id": 3, "topic": "Esfregaço sanguíneo", "text": "Na preparação de um esfregaço sanguíneo, um ângulo maior que 45° entre a lâmina extensora e a lâmina de apoio tende a produzir:", "options": [{"text": "Uma extensão mais fina e mais longa.", "correct": false, "explanation": "Incorreta. No material, ângulos maiores que 45° são associados ao efeito oposto: uma extensão mais espessa e curta."}, {"text": "Uma extensão espessa e curta.", "correct": true, "explanation": "Correta. A espessura da película depende do ângulo entre as lâminas, e ângulos maiores que 45° tendem a produzir esfregaços mais espessos e curtos."}, {"text": "Uma película sem células sanguíneas.", "correct": false, "explanation": "Incorreta. O ângulo altera principalmente a distribuição e a espessura da extensão, não elimina as células da amostra."}, {"text": "Uma coloração excessivamente azulada.", "correct": false, "explanation": "Incorreta. A coloração azulada está relacionada à etapa de coloração e à alcalinidade excessiva, não ao ângulo de extensão."}, {"text": "Uma película que dispensa a etapa de secagem.", "correct": false, "explanation": "Incorreta. Após a extensão, o esfregaço deve secar sem interferência antes de seguir para a coloração."}]}, {"id": 4, "topic": "Fase pré-analítica", "text": "Qual das situações abaixo é citada como erro da fase pré-analítica?", "options": [{"text": "Falha detectada no controle interno de qualidade.", "correct": false, "explanation": "Incorreta. Controle de qualidade integra a fase analítica, quando a amostra está sendo efetivamente analisada."}, {"text": "Perda do resultado após sua validação.", "correct": false, "explanation": "Incorreta. Um problema após validação/liberação se relaciona à fase pós-analítica."}, {"text": "Estase venosa prolongada durante a coleta.", "correct": true, "explanation": "Correta. A coleta ocorre antes da análise propriamente dita; a revisão identifica a estase venosa prolongada como problema pré-analítico."}, {"text": "Interpretação clínica inadequada após a liberação do laudo.", "correct": false, "explanation": "Incorreta. A interpretação após liberação ocorre na fase pós-analítica, não na pré-analítica."}, {"text": "Erro sistemático identificado durante a corrida analítica.", "correct": false, "explanation": "Incorreta. Um erro ocorrido durante a execução do teste pertence à fase analítica."}]}, {"id": 5, "topic": "Coloração Panótico Rápido", "text": "No método de coloração Panótico Rápido apresentado, a solução nº 3 é composta por tiazinas a 0,1% e atua principalmente como:", "options": [{"text": "Fixador, preservando as células e aumentando a estabilidade do esfregaço.", "correct": false, "explanation": "Incorreta. Essa função é atribuída à solução nº 1, de triarilmetano a 0,1%."}, {"text": "Corante ácido, corando de róseo a vermelho componentes básicos.", "correct": false, "explanation": "Incorreta. Essa é a função da solução nº 2, composta por xantenos a 0,1%."}, {"text": "Corante básico, corando de roxo-azulado componentes ácidos, como o núcleo.", "correct": true, "explanation": "Correta. A solução nº 3 contém tiazinas a 0,1% e funciona como corante básico para componentes ácidos celulares."}, {"text": "Agente de lavagem responsável por neutralizar o pH.", "correct": false, "explanation": "Incorreta. A lavagem ocorre depois das três soluções, com água deionizada, preferencialmente tamponada a pH 7."}, {"text": "Anticoagulante responsável por impedir a formação de coágulos.", "correct": false, "explanation": "Incorreta. A solução nº 3 é um corante; ela não é apresentada como anticoagulante."}]}, {"id": 6, "topic": "Classificação de riscos", "text": "Considerando a classificação de riscos apresentada, a exposição à radiação ultravioleta é classificada como risco:", "options": [{"text": "Biológico.", "correct": false, "explanation": "Incorreta. Riscos biológicos incluem agentes como bactérias, fungos, vírus e parasitas."}, {"text": "Químico.", "correct": false, "explanation": "Incorreta. Riscos químicos envolvem substâncias que podem penetrar no organismo por pele, inalação ou ingestão."}, {"text": "Físico.", "correct": true, "explanation": "Correta. O material classifica radiações ionizantes e não ionizantes, incluindo a luz ultravioleta, como riscos físicos."}, {"text": "Ergonômico.", "correct": false, "explanation": "Incorreta. Riscos ergonômicos se relacionam a postura, repetitividade, peso, mobiliário e outras condições de trabalho."}, {"text": "De acidente exclusivamente mecânico.", "correct": false, "explanation": "Incorreta. A radiação ultravioleta aparece na categoria de risco físico, e não como risco exclusivamente mecânico."}]}, {"id": 7, "topic": "Esterilização e desinfecção", "text": "Sobre esterilização e desinfecção, assinale a alternativa correta:", "options": [{"text": "A desinfecção, por definição, elimina todas as formas de vida microbiana, inclusive esporos.", "correct": false, "explanation": "Incorreta. O material destaca que a desinfecção reduz microrganismos patogênicos, mas pode não eliminar formas resistentes, como esporos."}, {"text": "A esterilização destrói todas as formas de vida microbiana, enquanto a desinfecção pode não eliminar esporos.", "correct": true, "explanation": "Correta. Essa é a diferença central apresentada entre os dois processos."}, {"text": "A esterilização é restrita ao uso de álcool 70%.", "correct": false, "explanation": "Incorreta. O material apresenta vários métodos de esterilização, como autoclave, calor seco, filtração e outros; álcool 70% aparece como agente de desinfecção."}, {"text": "A desinfecção e a esterilização são termos equivalentes.", "correct": false, "explanation": "Incorreta. Os processos têm objetivos diferentes quanto ao grau de eliminação microbiana."}, {"text": "A esterilização reduz apenas a quantidade de microrganismos patogênicos.", "correct": false, "explanation": "Incorreta. Essa descrição se aproxima da desinfecção; a esterilização visa destruir todas as formas de vida microbiana."}]}, {"id": 8, "topic": "Biossegurança e contenção", "text": "Ao trabalhar com materiais tóxicos, explosivos ou em reações perigosas, a orientação do material é utilizar:", "options": [{"text": "Uma bancada comum, desde que o ambiente esteja ventilado.", "correct": false, "explanation": "Incorreta. Ventilação comum não substitui o equipamento de contenção indicado para esse tipo de risco."}, {"text": "A capela destinada a esse tipo de manipulação.", "correct": true, "explanation": "Correta. O material orienta o uso de capela para materiais tóxicos, explosivos e reações perigosas."}, {"text": "A luz ultravioleta durante todo o procedimento.", "correct": false, "explanation": "Incorreta. A radiação UV é tratada como agente físico e não substitui a capela na manipulação desses materiais."}, {"text": "Um suporte vertical para pipetas como única medida coletiva.", "correct": false, "explanation": "Incorreta. O suporte de pipetas não faz a contenção de vapores, gases ou riscos de reações perigosas."}, {"text": "Apenas luvas, sem necessidade de equipamento de contenção.", "correct": false, "explanation": "Incorreta. O EPI não substitui o equipamento coletivo/estrutura indicada para controlar esse tipo de exposição."}]}, {"id": 9, "topic": "Pipetagem", "text": "Um laboratório deseja reduzir o risco de líquido residual escorrer para o interior de uma micropipeta após o uso. Qual prática é a mais adequada?", "options": [{"text": "Armazenar a micropipeta na horizontal e manter a ponteira acoplada.", "correct": false, "explanation": "Incorreta. A revisão orienta manter a micropipeta na vertical e retirar/ejetar a ponteira após o uso."}, {"text": "Manter a micropipeta na posição vertical e realizar a ejeção da ponteira.", "correct": true, "explanation": "Correta. Essas medidas ajudam a conservar o instrumento e reduzem a possibilidade de líquido residual atingir seu interior."}, {"text": "Mergulhar a extremidade da micropipeta em álcool 70%.", "correct": false, "explanation": "Incorreta. O material não apresenta a imersão da micropipeta em álcool como prática de armazenamento ou prevenção de entrada de líquido."}, {"text": "Guardar o instrumento com o êmbolo pressionado.", "correct": false, "explanation": "Incorreta. Essa não é a orientação apresentada para conservação após o uso."}, {"text": "Aumentar o volume ajustado antes de colocá-la no suporte.", "correct": false, "explanation": "Incorreta. Alterar o volume ajustado não impede o escorrimento de líquido residual para dentro do instrumento."}]}, {"id": 10, "topic": "Biossegurança", "text": "A biossegurança é apresentada como uma ciência voltada principalmente para:", "options": [{"text": "Apenas aumentar a produtividade do laboratório.", "correct": false, "explanation": "Incorreta. Produtividade não é o foco da definição apresentada."}, {"text": "Prevenir, controlar, minimizar e eliminar riscos, protegendo pessoas, animais, ambiente, materiais e a qualidade do trabalho.", "correct": true, "explanation": "Correta. Essa alternativa reúne os objetivos centrais usados no material para definir biossegurança."}, {"text": "Substituir os procedimentos operacionais por decisões individuais do profissional.", "correct": false, "explanation": "Incorreta. O material valoriza padronização e POPs, não decisões individuais sem procedimento."}, {"text": "Restringir-se ao descarte de resíduos biológicos.", "correct": false, "explanation": "Incorreta. Descarte é apenas uma parte; biossegurança abrange diferentes riscos e práticas de proteção."}, {"text": "Tratar exclusivamente dos riscos químicos.", "correct": false, "explanation": "Incorreta. O conteúdo aborda riscos físicos, químicos, biológicos, ergonômicos e de acidentes."}]}, {"id": 11, "topic": "Esterilização", "text": "Na autoclavação descrita no material, qual conjunto de condições é citado como referência?", "options": [{"text": "100 °C, 1 atm, 5 min.", "correct": false, "explanation": "Incorreta. Esse conjunto não corresponde ao parâmetro de referência apresentado para a autoclave."}, {"text": "121 °C, 2 atm, 15 min.", "correct": true, "explanation": "Correta. O material apresenta 121 °C, 2 atm e 15 minutos como referência para o funcionamento da autoclave."}, {"text": "160 °C, 2 atm, 15 min.", "correct": false, "explanation": "Incorreta. 160–180 °C aparece associado ao calor seco em forno de Pasteur, com tempo maior, e não à condição de autoclave indicada."}, {"text": "180 °C, 1 atm, 2 h.", "correct": false, "explanation": "Incorreta. Temperatura alta por cerca de 2 horas é relacionada ao calor seco, não à autoclavação de referência."}, {"text": "260 °C, 2 atm, 15 min.", "correct": false, "explanation": "Incorreta. Essa temperatura não é indicada no material como parâmetro de autoclavação."}]}, {"id": 12, "topic": "Pipetagem", "text": "Em relação à pipetagem correta, assinale a alternativa que reúne práticas compatíveis com o material:", "options": [{"text": "Pipetar com a boca quando o volume for pequeno e dispensar rapidamente o líquido.", "correct": false, "explanation": "Incorreta. O material é explícito em orientar que não se deve pipetar com a boca."}, {"text": "Usar pipetas limpas e secas, escolher volume total próximo ao volume a medir e manter fluxo contínuo na aspiração e dispensação.", "correct": true, "explanation": "Correta. Essas práticas aparecem na revisão como medidas que favorecem precisão, segurança e boa técnica de pipetagem."}, {"text": "Escolher sempre a pipeta de maior capacidade disponível e mantê-la inclinada durante a leitura.", "correct": false, "explanation": "Incorreta. A capacidade deve ser adequada e próxima ao volume a medir; usar a maior disponível não é a orientação de precisão."}, {"text": "Misturar ponteiras de qualquer marca, pois o encaixe não interfere no uso.", "correct": false, "explanation": "Incorreta. O encaixe adequado da ponteira é importante para o funcionamento correto; não se deve assumir que qualquer combinação seja equivalente."}, {"text": "Submeter a pipeta a altas temperaturas para melhorar sua precisão.", "correct": false, "explanation": "Incorreta. O material não indica aquecimento como forma de melhorar precisão e essa prática pode comprometer o instrumento."}]}, {"id": 13, "topic": "Fluxo laminar", "text": "Sobre o fluxo laminar horizontal descrito no material, assinale a alternativa correta:", "options": [{"text": "O ar filtrado é direcionado de trás para frente, em direção ao operador; protege a amostra, mas não o usuário.", "correct": true, "explanation": "Correta. No fluxo horizontal, o ar filtrado é soprado em direção ao operador; o material destaca a proteção da amostra, mas não do usuário."}, {"text": "O ar é direcionado de baixo para cima e protege apenas o usuário.", "correct": false, "explanation": "Incorreta. Essa direção não corresponde à descrição do fluxo laminar horizontal apresentada no material."}, {"text": "Não utiliza filtração HEPA.", "correct": false, "explanation": "Incorreta. O conteúdo descreve o filtro HEPA como parte do sistema de filtração do fluxo laminar."}, {"text": "É indicado para substituir a capela em reações com gases tóxicos.", "correct": false, "explanation": "Incorreta. O material orienta capela para materiais tóxicos, explosivos e reações perigosas; fluxo laminar tem outra finalidade."}, {"text": "Seu objetivo principal é esterilizar materiais por calor úmido.", "correct": false, "explanation": "Incorreta. Esterilização por calor úmido é função da autoclave, não do fluxo laminar."}]}, {"id": 14, "topic": "Esfregaço sanguíneo", "text": "No esfregaço sanguíneo, qual região é indicada como área de escolha para análise qualitativa e quantitativa por apresentar distribuição mais homogênea de hemácias, leucócitos e plaquetas?", "options": [{"text": "Cabeça.", "correct": false, "explanation": "Incorreta. A cabeça fica logo após o local da gota e pode apresentar aumento de leucócitos, especialmente linfócitos."}, {"text": "Corpo.", "correct": true, "explanation": "Correta. O corpo é a região intermediária em que hemácias, leucócitos e plaquetas ficam distribuídos de forma mais homogênea."}, {"text": "Cauda.", "correct": false, "explanation": "Incorreta. A cauda pode apresentar maior concentração de certos leucócitos e maior distorção morfológica."}, {"text": "Borda inicial da gota.", "correct": false, "explanation": "Incorreta. A área de escolha indicada não é o local inicial da gota, mas a região intermediária do esfregaço."}, {"text": "Extremidade não utilizada da lâmina.", "correct": false, "explanation": "Incorreta. A análise deve ser feita na região útil da extensão sanguínea, especialmente no corpo."}]}, {"id": 15, "topic": "Precisão e exatidão", "text": "Um resultado mostra medidas muito próximas umas das outras, porém afastadas do valor de referência. De acordo com as definições do material, esse conjunto de medidas apresenta:", "options": [{"text": "Boa exatidão e baixa precisão.", "correct": false, "explanation": "Incorreta. Medidas próximas entre si indicam boa precisão; o afastamento do valor de referência indica baixa exatidão."}, {"text": "Boa precisão e baixa exatidão.", "correct": true, "explanation": "Correta. Precisão avalia proximidade entre medidas; exatidão avalia proximidade em relação ao referencial."}, {"text": "Baixa precisão e boa exatidão.", "correct": false, "explanation": "Incorreta. O enunciado descreve justamente o contrário: as medidas estão próximas entre si, mas afastadas do referencial."}, {"text": "Boa sensibilidade e boa especificidade necessariamente.", "correct": false, "explanation": "Incorreta. Sensibilidade e especificidade são conceitos diferentes; não podem ser concluídas apenas a partir da dispersão e do afastamento das medidas."}, {"text": "Baixa precisão e baixa exatidão necessariamente.", "correct": false, "explanation": "Incorreta. A proximidade entre as medidas demonstra boa precisão, mesmo que a exatidão esteja baixa."}]}, {"id": 16, "topic": "Descarte de resíduos", "text": "Quanto ao descarte de resíduos perfurocortantes, o material orienta que eles sejam:", "options": [{"text": "Desprezados em sacos plásticos comuns quando não houver sangue visível.", "correct": false, "explanation": "Incorreta. O risco de perfuração existe independentemente de haver sangue visível; a revisão orienta recipiente próprio."}, {"text": "Armazenados em embalagens próprias para perfurocortantes, conforme a resolução, independentemente de estarem contaminados.", "correct": true, "explanation": "Correta. Perfurocortantes devem ser acondicionados em embalagem específica para esse tipo de resíduo."}, {"text": "Misturados aos resíduos químicos sólidos para facilitar o transporte.", "correct": false, "explanation": "Incorreta. O material separa as categorias de resíduos; perfurocortantes têm acondicionamento próprio."}, {"text": "Lavados e reutilizados sempre que possível.", "correct": false, "explanation": "Incorreta. Essa não é a orientação apresentada para descarte seguro de materiais perfurocortantes."}, {"text": "Descartados em recipientes abertos para evitar aumento de pressão.", "correct": false, "explanation": "Incorreta. Recipientes abertos não constituem acondicionamento seguro para materiais capazes de perfurar ou cortar."}]}, {"id": 17, "topic": "Coloração Panótico Rápido", "text": "No Panótico Rápido, o procedimento técnico apresentado recomenda, para cada uma das três soluções:", "options": [{"text": "Uma única imersão de 15 segundos, sem escorrer entre as etapas.", "correct": false, "explanation": "Incorreta. O procedimento é dividido entre as três soluções e inclui escorrimento após cada etapa."}, {"text": "Cinco imersões de 1 segundo, totalizando cerca de 5 segundos em cada solução, com escorrimento entre elas.", "correct": true, "explanation": "Correta. O material orienta movimento contínuo durante 5 segundos, descrito como 5 imersões de 1 segundo, deixando escorrer entre as soluções."}, {"text": "Dez imersões de 5 segundos em cada solução.", "correct": false, "explanation": "Incorreta. Esse tempo é muito maior do que o procedimento apresentado."}, {"text": "Dois minutos de repouso em cada solução.", "correct": false, "explanation": "Incorreta. O método apresentado é rápido e utiliza cerca de 5 segundos em cada solução."}, {"text": "Apenas uma passagem rápida, sem movimento da lâmina.", "correct": false, "explanation": "Incorreta. O material orienta movimento contínuo de cima para baixo ou para os lados durante as imersões."}]}, {"id": 18, "topic": "Fase analítica", "text": "Qual alternativa contém atividades atribuídas à fase analítica no material?", "options": [{"text": "Orientação do paciente, coleta e transporte da amostra.", "correct": false, "explanation": "Incorreta. Essas atividades acontecem antes da análise e pertencem à fase pré-analítica."}, {"text": "Recebimento e conferência das amostras, execução dos testes, calibração de equipamentos, controle de qualidade e rastreabilidade.", "correct": true, "explanation": "Correta. Essas atividades são listadas no material como componentes da fase analítica."}, {"text": "Validação clínica final, entrega do laudo e decisão terapêutica.", "correct": false, "explanation": "Incorreta. Validação/liberação, envio do resultado e decisões baseadas nele fazem parte da etapa pós-analítica."}, {"text": "Cadastro do paciente, jejum e identificação prévia dos tubos.", "correct": false, "explanation": "Incorreta. São atividades anteriores à execução do teste, portanto pré-analíticas."}, {"text": "Emissão de laudo, interpretação médica e solicitação de exames adicionais.", "correct": false, "explanation": "Incorreta. Essas ações ocorrem após a análise e estão ligadas à fase pós-analítica."}]}, {"id": 19, "topic": "Coloração Panótico Rápido", "text": "A coloração de um esfregaço ficou muito avermelhada. Segundo o material, esse achado sugere:", "options": [{"text": "Alcalinidade excessiva.", "correct": false, "explanation": "Incorreta. O material associa lâminas muito azuladas, e não avermelhadas, à alcalinidade excessiva."}, {"text": "Acidez excessiva.", "correct": true, "explanation": "Correta. Na avaliação da coloração, uma lâmina muito vermelha é relacionada à acidez excessiva."}, {"text": "Falha exclusiva na secagem da amostra.", "correct": false, "explanation": "Incorreta. A interpretação apresentada para excesso de vermelho é acidez excessiva, não uma falha exclusiva de secagem."}, {"text": "Necessidade obrigatória de aumentar o ângulo do esfregaço.", "correct": false, "explanation": "Incorreta. O ângulo afeta a espessura e o comprimento do esfregaço, não é a explicação indicada para a tonalidade muito vermelha."}, {"text": "Ausência de corante ácido.", "correct": false, "explanation": "Incorreta. A solução nº 2 é o corante ácido; a tonalidade muito vermelha é interpretada no material como acidez excessiva."}]}, {"id": 20, "topic": "Descarte de resíduos", "text": "Sobre resíduos químicos líquidos, qual orientação aparece no material?", "options": [{"text": "Devem ser lançados na pia após diluição em água.", "correct": false, "explanation": "Incorreta. O material orienta que produtos e soluções não sejam descartados na pia sem procedimento/autorização adequada."}, {"text": "Devem ser acumulados em recipientes adequados conforme sua composição, sem encher completamente a embalagem, com limite citado de até 80%.", "correct": true, "explanation": "Correta. Essa é a orientação resumida na revisão para o acondicionamento de resíduos químicos líquidos."}, {"text": "Devem ser misturados a resíduos biológicos para descarte conjunto.", "correct": false, "explanation": "Incorreta. Resíduos químicos e biológicos têm acondicionamento e manejo distintos."}, {"text": "Devem ser armazenados em recipientes abertos para facilitar a evaporação.", "correct": false, "explanation": "Incorreta. Recipiente aberto não é o acondicionamento seguro descrito para resíduos químicos líquidos."}, {"text": "Devem ser congelados antes do descarte.", "correct": false, "explanation": "Incorreta. O material não apresenta congelamento como regra de acondicionamento desses resíduos."}]}];
+const DISCURSIVE = [{"id": 1, "title": "Fase pré-analítica", "prompt": "Considere o seguinte cenário: um paciente não recebeu orientação adequada sobre jejum; durante a coleta houve estase venosa prolongada; depois, a amostra foi transportada e armazenada de forma inadequada.", "asks": ["Identifique os três problemas presentes no cenário.", "Explique por que eles pertencem à fase pré-analítica do ciclo do exame.", "Indique uma medida preventiva para cada problema, visando reduzir a variabilidade e aumentar a confiabilidade do resultado."], "answer": ["Problemas: orientação inadequada/jejum; estase venosa prolongada; transporte e armazenamento inadequados.", "Justificativa: todos ocorrem antes da execução analítica do teste e podem modificar a qualidade ou a representatividade da amostra.", "Prevenção: orientação padronizada ao paciente; técnica de coleta adequada; transporte e armazenamento conforme rotina/POP."]}, {"id": 2, "title": "Esfregaço sanguíneo", "prompt": "Sobre a técnica de esfregaço sanguíneo:", "asks": ["Descreva, em sequência, as principais etapas desde a colocação da gota de sangue até a secagem do esfregaço.", "Explique como o ângulo entre as lâminas interfere na espessura e no comprimento da extensão, incluindo o efeito de ângulos maiores que 45°.", "Cite dois erros técnicos que podem comprometer o esfregaço e explique como evitá-los."], "answer": ["Lâmina identificada e limpa; pequena gota próxima a uma extremidade; contato com a lâmina extensora; recuo até tocar a gota; distribuição por capilaridade; deslizamento suave e uniforme; formação da película; secagem sem interferência.", "O ângulo interfere na espessura da película; acima de 45° tende a produzir esfregaço espesso e curto.", "Erros possíveis: esperar o sangue secar/coagular; aplicar pressão excessiva; fazer movimentos de parada durante a extensão. A prevenção é executar a técnica sem demora, com pressão adequada e movimento contínuo."]}, {"id": 3, "title": "Coloração Panótico Rápido", "prompt": "A respeito da coloração Panótico Rápido:", "asks": ["Identifique as soluções nº 1, nº 2 e nº 3 e descreva a função de cada uma.", "Descreva o procedimento de imersão apresentado, incluindo tempo/movimento, lavagem e secagem.", "Explique o significado de uma lâmina muito vermelha e de uma lâmina muito azulada."], "answer": ["Solução 1: triarilmetano 0,1%, fixador. Solução 2: xantenos 0,1%, corante ácido. Solução 3: tiazinas 0,1%, corante básico.", "Em cada solução: movimento contínuo por 5 s (5 imersões de 1 s), deixando escorrer; depois lavar com água deionizada, preferencialmente tamponada a pH 7, e secar ao ar na vertical, com o final da extensão voltado para cima.", "Muito vermelha: acidez excessiva. Muito azulada: alcalinidade excessiva."]}, {"id": 4, "title": "Biossegurança e contenção", "prompt": "Biossegurança e contenção no laboratório:", "asks": ["Diferencie negligência, imprudência e imperícia e dê um exemplo laboratorial de cada uma.", "Classifique como físico, químico ou biológico os seguintes exemplos: radiação ultravioleta; substância corrosiva; vírus.", "Explique quando o material orienta o uso de capela e descreva a principal característica do fluxo laminar horizontal em relação à proteção da amostra e do operador."], "answer": ["Negligência: omissão/falta de cuidado; imprudência: ação perigosa apesar do conhecimento do risco; imperícia: falta de habilidade ou conhecimento técnico. Exemplos do material incluem não usar EPI por descuido (negligência), manipular inflamável perto de chama sabendo do risco (imprudência) e executar técnica/equipamento sem domínio adequado (imperícia).", "Radiação UV = risco físico; substância corrosiva = risco químico; vírus = risco biológico.", "Capela: indicada para materiais tóxicos, explosivos e reações perigosas. Fluxo laminar horizontal: ar filtrado de trás para frente, protegendo a amostra, mas não o operador."]}, {"id": 5, "title": "Pipetagem e descarte seguro", "prompt": "Boas práticas de pipetagem e descarte seguro:", "asks": ["Liste pelo menos quatro cuidados de pipetagem que favoreçam precisão, segurança e conservação do instrumento.", "Cite três situações em que a calibração de uma pipeta deve ser verificada segundo o material.", "Descreva, de forma resumida, como o material orienta o acondicionamento de resíduos biológicos/infectantes, perfurocortantes e químicos líquidos."], "answer": ["Boas práticas possíveis: nunca pipetar com a boca; usar pipetas limpas e secas; usar capacidade próxima ao volume medido; manter fluxo contínuo; usar o instrumento na vertical; manter a pipeta vertical após o uso; ejetar a ponteira; cuidar da limpeza.", "Calibração: conforme fabricante; após manutenção/troca de peças; após queda; diante de mudança no controle de qualidade. Três exemplos são suficientes.", "Resíduos: biológicos/infectantes em sacos plásticos brancos identificados; perfurocortantes em embalagem própria; químicos líquidos em recipientes adequados segundo a composição, sem enchimento completo (o material cita até 80%)."]}];
+let state = {};
+let currentQuestions = [];
+
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i=a.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function letters(i) { return String.fromCharCode(65+i); }
+function escapeHtml(s) {
+  return s.replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'})[c]);
+}
+function prepareQuestions() {
+  currentQuestions = shuffle(QUESTIONS).map(q => ({...q, options: shuffle(q.options.map((o,idx)=>({...o,_key:q.id+'-'+idx})))}));
+}
+function renderQuestions() {
+  const root=document.getElementById('questions'); root.innerHTML='';
+  currentQuestions.forEach((q, displayIndex) => {
+    const st=state[q.id] || {selected:null,checked:false};
+    const card=document.createElement('article'); card.className='question'+(st.checked?' checked':''); card.dataset.qid=q.id;
+    const opts=q.options.map((o,i)=>{
+      const selected=st.selected===o._key;
+      const classes=['option'];
+      if(st.checked && o.correct) classes.push('correct');
+      if(st.checked && selected && !o.correct) classes.push('incorrect','selected');
+      const verdict=o.correct?'<strong class="ok">✓ Correta.</strong>':'<strong class="bad">✕ Incorreta.</strong>';
+      return `<div class="${classes.join(' ')}">
+        <label><input type="radio" name="q${q.id}" value="${o._key}" ${selected?'checked':''}> <span class="letter">${letters(i)})</span><span>${escapeHtml(o.text)}</span></label>
+        <div class="explanation">${verdict} ${escapeHtml(o.explanation.replace(/^Correta\.\s*|^Incorreta\.\s*/,''))}</div>
+      </div>`;
+    }).join('');
+    const selectedOpt=q.options.find(o=>o._key===st.selected);
+    let msg='';
+    if(st.checked && selectedOpt) msg = selectedOpt.correct ? '<span class="msg ok">Você acertou esta questão.</span>' : '<span class="msg bad">Sua resposta está incorreta. Revise as explicações acima.</span>';
+    card.innerHTML=`
+      <div class="qhead"><div class="qnum">Questão ${displayIndex+1}</div><div class="topic">${escapeHtml(q.topic)}</div></div>
+      <div class="qtext">${escapeHtml(q.text)}</div>
+      <div class="options">${opts}</div>
+      <div class="actions"><button class="check" data-check="${q.id}">Conferir</button><span data-msg="${q.id}">${msg}</span></div>`;
+    root.appendChild(card);
+  });
+  bindQuestionEvents(); updateScore();
+}
+function bindQuestionEvents() {
+  document.querySelectorAll('.question input[type=radio]').forEach(input=>{
+    input.addEventListener('change',e=>{
+      const card=e.target.closest('.question'); const qid=Number(card.dataset.qid);
+      state[qid]={...(state[qid]||{}), selected:e.target.value, checked:false};
+      card.classList.remove('checked');
+      card.querySelectorAll('.option').forEach(el=>el.classList.remove('correct','incorrect','selected'));
+      card.querySelector(`[data-msg="${qid}"]`).innerHTML='';
+      updateScore();
+    });
+  });
+  document.querySelectorAll('[data-check]').forEach(btn=>btn.addEventListener('click',()=>checkQuestion(Number(btn.dataset.check))));
+}
+function checkQuestion(qid) {
+  const st=state[qid]; const card=document.querySelector(`.question[data-qid="${qid}"]`);
+  if(!st || !st.selected) { card.querySelector(`[data-msg="${qid}"]`).innerHTML='<span class="msg warn">Selecione uma alternativa primeiro.</span>'; return; }
+  state[qid].checked=true;
+  card.classList.add('checked');
+  const q=currentQuestions.find(x=>x.id===qid);
+  card.querySelectorAll('.option').forEach((el,i)=>{
+    const o=q.options[i]; const input=el.querySelector('input');
+    el.classList.toggle('correct',o.correct);
+    el.classList.toggle('incorrect',input.checked && !o.correct);
+    el.classList.toggle('selected',input.checked);
+  });
+  const chosen=q.options.find(o=>o._key===state[qid].selected);
+  card.querySelector(`[data-msg="${qid}"]`).innerHTML=chosen.correct?'<span class="msg ok">Você acertou esta questão.</span>':'<span class="msg bad">Sua resposta está incorreta. Revise as explicações acima.</span>';
+  updateScore();
+}
+function updateScore() {
+  let checked=0,correct=0,answered=0;
+  QUESTIONS.forEach(q=>{ const st=state[q.id]; if(st?.selected) answered++; if(st?.checked){checked++; const cq=currentQuestions.find(x=>x.id===q.id); if(cq?.options.find(o=>o._key===st.selected)?.correct) correct++;} });
+  document.getElementById('scoreText').textContent=`${checked}/20 conferidas • ${correct} acerto${correct===1?'':'s'}`;
+  document.getElementById('progressBar').style.width=`${(answered/QUESTIONS.length)*100}%`;
+}
+function renderDiscursive() {
+  const root=document.getElementById('discursive'); root.innerHTML='';
+  DISCURSIVE.forEach((d,i)=>{
+    const el=document.createElement('article'); el.className='disc';
+    el.innerHTML=`<h3>${i+1}. ${escapeHtml(d.title)}</h3><p>${escapeHtml(d.prompt)}</p>
+      <ol class="asks" type="a">${d.asks.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ol>
+      <textarea aria-label="Resposta discursiva ${i+1}" placeholder="Escreva sua resposta aqui antes de conferir..."></textarea>
+      <details><summary>Ver resposta esperada</summary><ol class="answer-list" type="a">${d.answer.map(x=>`<li>${escapeHtml(x)}</li>`).join('')}</ol></details>`;
+    root.appendChild(el);
+  });
+}
+
+document.getElementById('shuffleBtn').addEventListener('click',()=>{ prepareQuestions(); state={}; renderQuestions(); window.scrollTo({top:0,behavior:'smooth'}); });
+document.getElementById('resetBtn').addEventListener('click',()=>{ state={}; renderQuestions(); document.querySelectorAll('textarea').forEach(t=>t.value=''); document.querySelectorAll('details').forEach(d=>d.open=false); });
+document.getElementById('checkAllBtn').addEventListener('click',()=>{
+  let any=false;
+  currentQuestions.forEach(q=>{if(state[q.id]?.selected){state[q.id].checked=true; any=true;}});
+  if(any) renderQuestions();
+});
+
+prepareQuestions(); renderQuestions(); renderDiscursive();
+</script>
+</body>
+</html>
